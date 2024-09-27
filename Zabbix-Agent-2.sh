@@ -44,7 +44,9 @@ install_zabbix_agent2() {
     # Instalacja pobranego pakietu .deb
     dpkg -i zabbix_agent2.deb
     apt update
+    apt install zabbix-agent2 zabbix-agent2-plugin-*
     apt install -f -y  # Zainstalowanie brakujących zależności
+
 
     # Upewnij się, że agent się zainstalował
     if ! command -v zabbix_agent2 &> /dev/null; then
