@@ -31,19 +31,20 @@ generate_psk() {
     echo "$PSK_KEY" > /etc/zabbix/zabbix_agent2.psk
 }
 
-# Funkcja instalacji i konfiguracji Zabbix Agent 2
+# Funkcja instalacji Zabbix Agent 2
 install_zabbix_agent2() {
-    echo "Instalowanie Zabbix Agent 2 (wersja 7.0)..."
+    # Poproś użytkownika o podanie linku do pliku .deb
+    read -p "Podaj URL do pliku .deb z Zabbix Agent 2: " ZABBIX_DEB_URL
 
-    # Pobieranie repozytorium Zabbix dla wersji 7.0
-    wget https://repo.zabbix.com/zabbix/7.0/$(lsb_release -si | awk '{print tolower($0)}')/pool/main/z/zabbix-release/zabbix-release_7.0-1+$(lsb_release -sc)_all.deb
+    echo "Pobieranie Zabbix Agent 2 z podanego linku..."
 
-    # Instalacja repozytorium
-    dpkg -i zabbix-release_7.0-1+$(lsb_release -sc)_all.deb
+    # Pobranie pliku .deb z podanego URL
+    wget $ZABBIX_DEB_URL -O zabbix_agent2.deb
+
+    # Instalacja pobranego pakietu .deb
+    dpkg -i zabbix_agent2.deb
     apt update
-
-    # Instalacja agenta Zabbix 2
-    apt install -y zabbix-agent2
+    apt install -f -y  # Zainstalowanie brakujących zależności
 
     # Upewnij się, że agent się zainstalował
     if ! command -v zabbix_agent2 &> /dev/null; then
