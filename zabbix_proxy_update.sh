@@ -14,16 +14,20 @@ if [[ -f /etc/os-release ]]; then
     source /etc/os-release
     OS_NAME=$ID
     OS_VERSION=$VERSION_ID
+    OS_PRETTY_NAME=$PRETTY_NAME
 elif [[ -f /etc/redhat-release ]]; then
     OS_NAME="rhel"
     OS_VERSION=$(rpm --eval %{centos_ver})
+    OS_PRETTY_NAME=$(cat /etc/redhat-release)
 else
     echo "Nieobsługiwany system operacyjny. Skrypt wspiera tylko Debian/Ubuntu i CentOS/Red Hat."
     exit 1
 fi
 
-# Wyświetlanie informacji o systemie
-echo "Wykryty system: $OS_NAME $OS_VERSION"
+# Wyświetlanie szczegółów systemu
+echo "Wykryty system: $OS_PRETTY_NAME"
+echo "ID systemu: $OS_NAME"
+echo "Wersja systemu: $OS_VERSION"
 echo ""
 
 # Informacje o wymaganym linku repozytorium
@@ -75,4 +79,23 @@ fi
 echo "Restartowanie usługi Zabbix Proxy..."
 systemctl restart zabbix-proxy
 
-# Sprawdzanie st
+# Sprawdzanie statusu Zabbix Proxy
+if systemctl status zabbix-proxy | grep -q "active (running)"; then
+    echo "Zabbix Proxy zostało pomyślnie zaktualizowane i działa poprawnie."
+else
+    echo "Wystąpił problem z restartem usługi Zabbix Proxy. Sprawdź logi: /var/log/zabbix/zabbix_proxy.log"
+fi
+
+# Usuwanie pliku tymczasowego
+rm -f "$TEMP_FILE"
+
+# Weryfikacja wersji Zabbix Proxy
+echo "Sprawdzanie zainstalowanej wersji Zabbix Proxy..."
+zabbix_proxy_version=$(zabbix_proxy -V 2>/dev/null | grep -oP '(?<=Zabbix proxy ).*')
+if [[ -n $zabbix_proxy_version ]]; then
+    echo "Zainstalowana wersja Zabbix Proxy: $zabbix_proxy_version"
+else
+    echo "Nie udało się sprawdzić wersji Zabbix Proxy. Upewnij się, że usługa działa."
+fi
+
+echo "=== Aktualizacja zakończona. ==="
