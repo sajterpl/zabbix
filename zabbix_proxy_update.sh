@@ -1,11 +1,35 @@
 #!/bin/bash
 
-echo "=== Aktualizacja Zabbix Proxy ==="
+echo "=== Aktualizacja systemu i Zabbix Proxy ==="
 
 # Sprawdzanie uprawnień
 if [[ $EUID -ne 0 ]]; then
     echo "Uruchom skrypt jako root lub użyj sudo."
     exit 1
+fi
+
+# Aktualizacja systemu operacyjnego
+echo "Aktualizowanie systemu operacyjnego..."
+if [[ -f /etc/debian_version ]]; then
+    apt update && apt upgrade -y
+elif [[ -f /etc/redhat-release ]]; then
+    yum update -y
+else
+    echo "Nieobsługiwany system operacyjny. Aktualizacja systemu pominięta."
+fi
+
+# Sprawdzanie obecności `curl`
+echo "Sprawdzanie obecności curl..."
+if ! command -v curl &> /dev/null; then
+    echo "curl nie jest zainstalowany. Instalowanie curl..."
+    if [[ -f /etc/debian_version ]]; then
+        apt install curl -y
+    elif [[ -f /etc/redhat-release ]]; then
+        yum install curl -y
+    else
+        echo "Nieobsługiwany system operacyjny. Nie można zainstalować curl."
+        exit 1
+    fi
 fi
 
 # Wykrywanie systemu operacyjnego
