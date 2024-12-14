@@ -27,32 +27,33 @@ chown zabbix:zabbix $PSK_FILE
 # Pobranie wygenerowanego klucza
 PSK_KEY=$(cat $PSK_FILE)
 
+# Sprawdzenie, czy plik konfiguracyjny istnieje
+if [[ ! -f $PROXY_CONFIG ]]; then
+    echo "Plik konfiguracyjny $PROXY_CONFIG nie istnieje. Tworzę nowy..."
+    touch $PROXY_CONFIG
+    chown zabbix:zabbix $PROXY_CONFIG
+    chmod 640 $PROXY_CONFIG
+fi
+
 # Dodawanie konfiguracji PSK do pliku zabbix_proxy.conf
 echo "Aktualizowanie pliku konfiguracyjnego Zabbix Proxy: $PROXY_CONFIG"
 
-if grep -q "TLSConnect=" $PROXY_CONFIG; then
-    sed -i "s/^TLSConnect=.*/TLSConnect=psk/" $PROXY_CONFIG
-else
-    echo "TLSConnect=psk" >> $PROXY_CONFIG
-fi
+# Funkcja do dodawania lub modyfikowania parametrów
+update_config() {
+    local key="$1"
+    local value="$2"
+    if grep -q "^$key=" $PROXY_CONFIG; then
+        sed -i "s|^$key=.*|$key=$value|" $PROXY_CONFIG
+    else
+        echo "$key=$value" >> $PROXY_CONFIG
+    fi
+}
 
-if grep -q "TLSAccept=" $PROXY_CONFIG; then
-    sed -i "s/^TLSAccept=.*/TLSAccept=psk/" $PROXY_CONFIG
-else
-    echo "TLSAccept=psk" >> $PROXY_CONFIG
-fi
-
-if grep -q "TLSPSKIdentity=" $PROXY_CONFIG; then
-    sed -i "s/^TLSPSKIdentity=.*/TLSPSKIdentity=$PSK_IDENTITY/" $PROXY_CONFIG
-else
-    echo "TLSPSKIdentity=$PSK_IDENTITY" >> $PROXY_CONFIG
-fi
-
-if grep -q "TLSPSKFile=" $PROXY_CONFIG; then
-    sed -i "s|^TLSPSKFile=.*|TLSPSKFile=$PSK_FILE|" $PROXY_CONFIG
-else
-    echo "TLSPSKFile=$PSK_FILE" >> $PROXY_CONFIG
-fi
+# Dodanie wymaganych parametrów do pliku
+update_config "TLSConnect" "psk"
+update_config "TLSAccept" "psk"
+update_config "TLSPSKIdentity" "$PSK_IDENTITY"
+update_config "TLSPSKFile" "$PSK_FILE"
 
 # Restart Zabbix Proxy
 echo "Restartowanie usługi Zabbix Proxy..."
