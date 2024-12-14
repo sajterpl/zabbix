@@ -8,7 +8,7 @@ Ten skrypt automatycznie aktualizuje Zabbix Proxy do najnowszej wersji.
 
    **Za pomocą curl**:
    ```bash
-   bash <(curl -s https://github.com/sajterpl/zabbix/blob/main/zabbix_proxy_update.sh)
+   bash <(curl -s https://raw.githubusercontent.com/sajterpl/zabbix/main/zabbix_proxy_update.sh)
 
 # Zabbix Proxy PSK
 
