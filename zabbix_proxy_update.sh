@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "=== Aktualizacja Zabbix Proxy do najnowszej wersji ==="
+echo "=== Aktualizacja Zabbix Proxy ==="
 
 # Sprawdzanie uprawnień
 if [[ $EUID -ne 0 ]]; then
@@ -8,56 +8,62 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-# Funkcja do aktualizacji na systemach Debian/Ubuntu
-update_debian() {
-    echo "Wykryto system Debian/Ubuntu."
+# Prośba o link do pliku repozytorium
+read -p "Podaj pełny link do pliku repozytorium Zabbix (np. https://repo.zabbix.com/...): " REPO_URL
 
-    # Pobranie najnowszej wersji repozytorium Zabbix
-    echo "Dodawanie repozytorium Zabbix..."
-    wget -qO- https://repo.zabbix.com/zabbix/7.2/release/debian/pool/main/z/zabbix-release/zabbix-release_latest_7.2+debian12_all.deb -O zabbix-release.deb
-    dpkg -i zabbix-release.deb
-    apt update
-
-    # Aktualizacja Zabbix Proxy
-    echo "Aktualizacja Zabbix Proxy..."
-    apt install --only-upgrade zabbix-proxy-mysql zabbix-proxy-sqlite3 -y
-
-    # Restart Zabbix Proxy
-    echo "Restartowanie Zabbix Proxy..."
-    systemctl restart zabbix-proxy
-
-    echo "Aktualizacja zakończona."
-}
-
-# Funkcja do aktualizacji na systemach CentOS/Red Hat
-update_centos() {
-    echo "Wykryto system CentOS/Red Hat."
-
-    # Pobranie repozytorium Zabbix
-    echo "Dodawanie repozytorium Zabbix..."
-    yum install -y https://repo.zabbix.com/zabbix/$(rpm --eval %{centos_ver})/$(rpm --eval %{centos_ver})/zabbix-release.noarch.rpm
-    yum clean all
-
-    # Aktualizacja Zabbix Proxy
-    echo "Aktualizacja Zabbix Proxy..."
-    yum update -y zabbix-proxy-mysql zabbix-proxy-sqlite3
-
-    # Restart Zabbix Proxy
-    echo "Restartowanie Zabbix Proxy..."
-    systemctl restart zabbix-proxy
-
-    echo "Aktualizacja zakończona."
-}
+# Sprawdzanie, czy link został podany
+if [[ -z "$REPO_URL" ]]; then
+    echo "Nie podano linku. Anulowanie."
+    exit 1
+fi
 
 # Wykrywanie systemu operacyjnego
 if [[ -f /etc/debian_version ]]; then
-    update_debian
+    OS="debian"
 elif [[ -f /etc/redhat-release ]]; then
-    update_centos
+    OS="redhat"
 else
     echo "Nieobsługiwany system operacyjny. Skrypt wspiera tylko Debian/Ubuntu i CentOS/Red Hat."
     exit 1
 fi
+
+# Pobieranie i instalacja repozytorium
+echo "Pobieranie pliku repozytorium Zabbix z podanego linku..."
+TEMP_FILE=$(mktemp)
+
+if ! curl -o "$TEMP_FILE" -fsSL "$REPO_URL"; then
+    echo "Nie udało się pobrać pliku. Sprawdź podany link."
+    exit 1
+fi
+
+# Instalacja repozytorium
+if [[ $OS == "debian" ]]; then
+    echo "Instalowanie repozytorium Zabbix na Debian/Ubuntu..."
+    dpkg -i "$TEMP_FILE" || { echo "Błąd podczas instalacji pliku repozytorium."; exit 1; }
+    apt update
+    echo "Aktualizacja Zabbix Proxy..."
+    apt install --only-upgrade zabbix-proxy-mysql zabbix-proxy-sqlite3 -y
+elif [[ $OS == "redhat" ]]; then
+    echo "Instalowanie repozytorium Zabbix na CentOS/Red Hat..."
+    yum install -y "$TEMP_FILE" || { echo "Błąd podczas instalacji pliku repozytorium."; exit 1; }
+    yum clean all
+    echo "Aktualizacja Zabbix Proxy..."
+    yum update -y zabbix-proxy-mysql zabbix-proxy-sqlite3
+fi
+
+# Restartowanie usługi Zabbix Proxy
+echo "Restartowanie usługi Zabbix Proxy..."
+systemctl restart zabbix-proxy
+
+# Sprawdzanie statusu Zabbix Proxy
+if systemctl status zabbix-proxy | grep -q "active (running)"; then
+    echo "Zabbix Proxy zostało pomyślnie zaktualizowane i działa poprawnie."
+else
+    echo "Wystąpił problem z restartem usługi Zabbix Proxy. Sprawdź logi: /var/log/zabbix/zabbix_proxy.log"
+fi
+
+# Usuwanie pliku tymczasowego
+rm -f "$TEMP_FILE"
 
 # Weryfikacja wersji Zabbix Proxy
 echo "Sprawdzanie zainstalowanej wersji Zabbix Proxy..."
