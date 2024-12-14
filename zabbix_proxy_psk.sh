@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Sprawdzanie uprawnień
+if [[ $EUID -ne 0 ]]; then
+    echo "Uruchom skrypt jako root lub użyj sudo."
+    exit 1
+fi
+
+echo "=== Skrypt generujący PSK i konfigurujący Zabbix Proxy ==="
+
 # Poproś użytkownika o podanie identyfikatora PSK
 read -p "Podaj identyfikator PSK (domyślnie: ZabbixPSK): " PSK_IDENTITY
 PSK_IDENTITY=${PSK_IDENTITY:-ZabbixPSK} # Domyślny identyfikator, jeśli nic nie wpisano
@@ -78,3 +86,5 @@ echo "$PSK_DATA" > $OUTPUT_FILE
 # Informacja o zapisie danych
 echo "Dane zostały zapisane w pliku: $OUTPUT_FILE"
 echo "Możesz je łatwo skopiować stąd lub wkleić bezpośrednio z powyższych informacji."
+
+echo "=== Skrypt zakończony ==="
