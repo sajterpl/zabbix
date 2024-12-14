@@ -1,7 +1,25 @@
-https://raw.githubusercontent.com/sajterpl/zabbix/main/zabbix_proxy_psk.sh
+# Zabbix Proxy Update Script
 
-Pobieranie najnowszego repozytorium oraz aktualizacja Zabbix Proxy
-wget https://github.com/sajterpl/zabbix/blob/main/zabbix_proxy_update.sh
+Ten skrypt automatycznie aktualizuje Zabbix Proxy do najnowszej wersji.
 
-Generator PSK dla zabbix-proxy
-wget https://raw.githubusercontent.com/sajterpl/zabbix/main/zabbix_proxy_psk.sh
+## Jak uruchomić?
+
+1. Pobierz i uruchom skrypt za pomocą jednego z poniższych poleceń:
+
+   **Za pomocą curl**:
+   ```bash
+   bash <(curl -s https://github.com/sajterpl/zabbix/blob/main/zabbix_proxy_update.sh)
+
+# Zabbix Proxy PSK
+
+Ten skrypt generuje klucz PSK.
+
+## Jak uruchomić?
+
+1. Pobierz i uruchom skrypt za pomocą jednego z poniższych poleceń:
+
+   **Za pomocą curl**:
+   ```bash
+   bash <(curl -s https://raw.githubusercontent.com/sajterpl/zabbix/main/zabbix_proxy_psk.sh)
+
+
