@@ -14,7 +14,7 @@ update_debian() {
 
     # Pobranie najnowszej wersji repozytorium Zabbix
     echo "Dodawanie repozytorium Zabbix..."
-    wget -qO- https://repo.zabbix.com/zabbix/$(lsb_release -cs)/$(lsb_release -cs)/zabbix-release_$(lsb_release -cs)_amd64.deb -O zabbix-release.deb
+    wget -qO- https://repo.zabbix.com/zabbix/7.2/release/debian/pool/main/z/zabbix-release/zabbix-release_latest_7.2+debian12_all.deb -O zabbix-release.deb
     dpkg -i zabbix-release.deb
     apt update
 
