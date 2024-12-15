@@ -1,4 +1,4 @@
-# Zabbix Agent 2 zPSK
+# Zabbix Agent 2 z PSK
 
 Ten skrypt instalujący zabbix agent 2 oraz generujący klucz psk.
 
