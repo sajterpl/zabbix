@@ -26,6 +26,40 @@ install_missing_packages() {
     fi
 }
 
+# Funkcja weryfikująca system operacyjny
+detect_system() {
+    echo "Wykrywanie systemu operacyjnego..."
+    if [[ -f /etc/os-release ]]; then
+        source /etc/os-release
+        OS_NAME=$ID
+        OS_VERSION=$VERSION_ID
+        OS_PRETTY_NAME=$PRETTY_NAME
+    elif [[ -f /etc/redhat-release ]]; then
+        OS_NAME="rhel"
+        OS_VERSION=$(rpm --eval %{centos_ver})
+        OS_PRETTY_NAME=$(cat /etc/redhat-release)
+    else
+        echo "Nieobsługiwany system operacyjny. Skrypt wspiera tylko Debian/Ubuntu i CentOS/Red Hat."
+        exit 1
+    fi
+
+    # Wyświetlenie szczegółów systemu
+    echo "Wykryty system: $OS_PRETTY_NAME"
+    echo "ID systemu: $OS_NAME"
+    echo "Wersja systemu: $OS_VERSION"
+
+    # Wyświetlenie formatu linku do pobrania agenta
+    echo "Odpowiedni link do pobrania Zabbix Agent 2:"
+    if [[ $OS_NAME == "ubuntu" || $OS_NAME == "debian" ]]; then
+        echo "https://repo.zabbix.com/zabbix/<wersja>/$(echo $OS_NAME)/pool/main/z/zabbix-release/zabbix-release_<wersja>-<numer>+$(echo $OS_NAME)$(echo $OS_VERSION | tr -d .)_all.deb"
+    elif [[ $OS_NAME == "centos" || $OS_NAME == "rhel" ]]; then
+        echo "https://repo.zabbix.com/zabbix/<wersja>/$(echo $OS_NAME)/<wersja>/x86_64/zabbix-release-<wersja>-<numer>.el$(echo $OS_VERSION | cut -d. -f1).noarch.rpm"
+    else
+        echo "Nie udało się określić formatu linku dla tego systemu."
+    fi
+    echo ""
+}
+
 # Funkcja generująca klucz PSK
 generate_psk() {
     read -p "Podaj identyfikator PSK (np. PSK001): " PSK_ID
@@ -46,18 +80,25 @@ generate_psk() {
 
 # Funkcja instalacji Zabbix Agent 2
 install_zabbix_agent2() {
-    # Poproś użytkownika o podanie linku do pliku .deb
-    read -p "Podaj URL do pliku .deb z Zabbix Agent 2: " ZABBIX_DEB_URL
+    # Poproś użytkownika o podanie linku do pliku .deb lub .rpm
+    read -p "Podaj URL do pliku z Zabbix Agent 2: " ZABBIX_PACKAGE_URL
 
     echo "Pobieranie Zabbix Agent 2 z podanego linku..."
 
-    # Pobranie pliku .deb z podanego URL
-    wget -q $ZABBIX_DEB_URL -O zabbix_agent2.deb
+    # Pobranie pliku .deb lub .rpm z podanego URL
+    wget -q $ZABBIX_PACKAGE_URL -O zabbix_agent2.pkg
 
-    # Instalacja pobranego pakietu .deb
-    dpkg -i zabbix_agent2.deb
-    apt update
-    apt install -f -y
+    # Instalacja pobranego pakietu
+    if [[ $OS_NAME == "ubuntu" || $OS_NAME == "debian" ]]; then
+        dpkg -i zabbix_agent2.pkg
+        apt update
+        apt install -f -y
+    elif [[ $OS_NAME == "centos" || $OS_NAME == "rhel" ]]; then
+        yum install -y zabbix_agent2.pkg
+    else
+        echo "Nieobsługiwany system operacyjny. Instalacja Zabbix Agent 2 przerwana."
+        exit 1
+    fi
 
     # Upewnij się, że agent się zainstalował
     if ! command -v zabbix_agent2 &> /dev/null; then
@@ -110,6 +151,7 @@ restart_zabbix_agent2() {
 main() {
     check_root
     install_missing_packages
+    detect_system
     install_zabbix_agent2
     generate_psk
     configure_zabbix_agent2
