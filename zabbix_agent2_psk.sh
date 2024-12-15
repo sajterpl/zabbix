@@ -44,16 +44,17 @@ detect_system() {
     fi
 
     # Wyświetlenie szczegółów systemu
-    echo "Wykryty system: $OS_PRETTY_NAME"
+    echo "Wykryty system operacyjny: $OS_PRETTY_NAME"
     echo "ID systemu: $OS_NAME"
     echo "Wersja systemu: $OS_VERSION"
+    echo ""
 
     # Wyświetlenie formatu linku do pobrania agenta
-    echo "Odpowiedni link do pobrania Zabbix Agent 2:"
+    echo "Proszę użyć odpowiedniego linku do pobrania Zabbix Agent 2:"
     if [[ $OS_NAME == "ubuntu" || $OS_NAME == "debian" ]]; then
-        echo "https://repo.zabbix.com/zabbix/<wersja>/$(echo $OS_NAME)/pool/main/z/zabbix-release/zabbix-release_<wersja>-<numer>+$(echo $OS_NAME)$(echo $OS_VERSION | tr -d .)_all.deb"
+        echo "https://repo.zabbix.com/zabbix/<wersja>/$OS_NAME/pool/main/z/zabbix-release/zabbix-release_<wersja>-<numer>+$OS_NAME${OS_VERSION//./}_all.deb"
     elif [[ $OS_NAME == "centos" || $OS_NAME == "rhel" ]]; then
-        echo "https://repo.zabbix.com/zabbix/<wersja>/$(echo $OS_NAME)/<wersja>/x86_64/zabbix-release-<wersja>-<numer>.el$(echo $OS_VERSION | cut -d. -f1).noarch.rpm"
+        echo "https://repo.zabbix.com/zabbix/<wersja>/$OS_NAME/$OS_VERSION/x86_64/zabbix-release-<wersja>-<numer>.el${OS_VERSION%%.*}.noarch.rpm"
     else
         echo "Nie udało się określić formatu linku dla tego systemu."
     fi
