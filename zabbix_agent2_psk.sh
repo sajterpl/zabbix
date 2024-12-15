@@ -75,8 +75,23 @@ generate_psk() {
     chmod 640 $PSK_FILE
     chown zabbix:zabbix $PSK_FILE
 
-    # Wyświetlanie wygenerowanego klucza PSK
-    echo "Wygenerowany klucz PSK: $PSK_KEY"
+    # Wyświetlenie informacji o identyfikatorze i kluczu PSK
+    echo ""
+    echo "===== Wygenerowane dane PSK ====="
+    echo "Identyfikator PSK: $PSK_ID"
+    echo "Klucz PSK: $PSK_KEY"
+    echo "Plik PSK zapisany w: $PSK_FILE"
+    echo "================================="
+    echo ""
+
+    # Zapis danych do pliku dla ułatwienia kopiowania
+    PSK_OUTPUT_FILE="/tmp/psk_info_${PSK_ID}.txt"
+    cat <<EOF > $PSK_OUTPUT_FILE
+Identyfikator PSK: $PSK_ID
+Klucz PSK: $PSK_KEY
+Plik PSK: $PSK_FILE
+EOF
+    echo "Dane PSK zostały zapisane w pliku: $PSK_OUTPUT_FILE"
 }
 
 # Funkcja instalacji Zabbix Agent 2
