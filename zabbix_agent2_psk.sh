@@ -132,8 +132,6 @@ configure_zabbix_agent2() {
     read -p "Podaj nazwę hosta dla agenta: " HOSTNAME
     read -p "Podaj port (domyślnie 10050) dla agenta pasywnego: " PASSIVE_PORT
     PASSIVE_PORT=${PASSIVE_PORT:-10050}
-    read -p "Podaj port (domyślnie 10051) dla agenta aktywnego: " ACTIVE_PORT
-    ACTIVE_PORT=${ACTIVE_PORT:-10051}
 
     # Edycja pliku konfiguracyjnego Zabbix Agent 2
     ZABBIX_CONFIG="/etc/zabbix/zabbix_agent2.conf"
